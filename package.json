@@ -14,8 +14,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "npm run build && node --test dist/__tests__/*.test.js",
-    "check": "npm run build && npm test",
-    "prepare": "npm run build"
+    "check": "npm run build && npm test"
   },
   "engines": {
     "node": ">=20"
