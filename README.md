@@ -1,164 +1,218 @@
 # Agent Watch
 
-Receive Claude Code and Codex lifecycle notifications on Apple Watch through Pushover.
+Send **Claude Code** and **Codex** lifecycle notifications to your iPhone / Apple Watch.
 
-Agent Watch is a small TypeScript CLI that installs official lifecycle hooks for Claude Code and Codex, normalizes completion events, and sends privacy-conscious notifications without uploading source code, prompts, transcripts, or full assistant responses by default.
+The CLI installs lifecycle `Stop` hooks and forwards a small notification through Pushover. It does **not** parse transcript files and, by default, it does **not** send prompts, source code, or the assistant's final message.
 
-## Status
+## Why hooks instead of a Skill?
 
-Current version: `0.1.0`
+Completion notifications are deterministic lifecycle side effects. They should run whenever the agent finishes a turn, regardless of whether the model decides to invoke a Skill. Both Claude Code and Codex expose lifecycle hooks for this purpose.
 
-- Claude Code `Stop` hook support
-- Codex `Stop` hook support
-- Pushover provider
-- Apple Watch delivery through the Pushover iPhone/watchOS notification path
-- Safe failure behavior: notification failures never block the agent
-- Existing hook configurations are preserved
-- Automatic backups before configuration changes
-- Optional bounded final-message summary
-- Claude background-task suppression to avoid premature “done” notifications
+## Architecture
+
+```text
+Claude Code ── Stop hook ──┐
+                           ├── agent-watch ── Pushover ── iPhone ── Apple Watch
+Codex ─────── Stop hook ───┘
+```
 
 ## Requirements
 
-- macOS
+- macOS or Linux
 - Node.js 20+
 - Claude Code and/or Codex
-- A Pushover account and application token
-- Pushover installed and configured on your iPhone / Apple Watch
+- Pushover account/app credentials
+- Pushover installed on the iPhone; enable Apple Watch notification mirroring / Watch app as appropriate
 
-## Install
-
-For local development:
-
-```bash
-npm install
-npm run build
-npm link
-```
-
-Once the repository is ready to use directly:
+## Install from GitHub
 
 ```bash
 npm install -g github:mufeiyu-ayu/agent-watch
 ```
 
-## Configure Pushover
+For local development:
 
 ```bash
-agent-watch configure pushover <USER_KEY> <APP_TOKEN>
+git clone https://github.com/mufeiyu-ayu/agent-watch.git
+cd agent-watch
+npm install
+npm run build
+npm link
 ```
 
-Credentials are stored in the Agent Watch config file with user-only permissions (`0600`).
+## 1. Configure Pushover
 
-By default Agent Watch does **not** include the final assistant response in a notification.
-
-To enable a short bounded summary:
+Create a Pushover application to obtain an application API token and find your user key.
 
 ```bash
-agent-watch configure summary on
+agent-watch configure pushover \
+  --user YOUR_USER_KEY \
+  --token YOUR_APP_TOKEN
 ```
 
-Disable it again with:
+The configuration is stored at:
+
+```text
+~/.config/agent-watch/config.json
+```
+
+with file mode `0600`.
+
+Environment variables can be used instead of CLI flags:
 
 ```bash
-agent-watch configure summary off
+export PUSHOVER_USER_KEY='...'
+export PUSHOVER_APP_TOKEN='...'
+agent-watch configure pushover
 ```
 
-## Test the notification path
+By default, Agent Watch sends only:
+
+- agent name
+- project directory name
+- lifecycle event / completion state
+
+To explicitly include a truncated final assistant message:
+
+```bash
+agent-watch configure pushover \
+  --user YOUR_USER_KEY \
+  --token YOUR_APP_TOKEN \
+  --include-summary \
+  --summary-max 180
+```
+
+## 2. Send a test notification
 
 ```bash
 agent-watch test
 ```
 
-This sends a test notification through Pushover. If your iPhone is locked and Apple Watch is eligible to receive the mirrored notification, the watch should alert according to your watch notification/haptic settings.
+## 3. Install hooks
 
-## Install hooks
-
-Install both Claude Code and Codex hooks:
+Both agents:
 
 ```bash
 agent-watch setup all
 ```
 
-Or install one integration only:
+Only Codex:
 
 ```bash
-agent-watch setup claude
 agent-watch setup codex
 ```
 
-The installer preserves existing hooks and creates a backup before changing configuration.
+Only Claude Code:
 
-### Claude Code
-
-Agent Watch adds a `Stop` command hook to:
-
-```text
-~/.claude/settings.json
+```bash
+agent-watch setup claude
 ```
 
-When Claude reports active `background_tasks` or `session_crons`, Agent Watch suppresses the completion notification so a foreground stop does not look like the entire task is finished.
+Agent Watch merges its hook into existing JSON instead of replacing existing hooks. If a target file already exists, it creates a `.agent-watch.bak` backup before writing.
+
+### Codex trust step
+
+Codex requires non-managed command hooks to be reviewed and trusted. After setup, open Codex and run:
+
+```text
+/hooks
+```
+
+Review and trust the Agent Watch hook if prompted.
+
+## What gets installed?
 
 ### Codex
 
-Agent Watch adds a `Stop` command hook to:
+User-level hook file:
 
 ```text
 ~/.codex/hooks.json
 ```
 
-Codex may require you to review/trust a command hook before it runs.
+Conceptually:
 
-## Notification content
+```json
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "... agent-watch ... hook --agent codex",
+            "timeout": 10,
+            "async": true
+          }
+        ]
+      }
+    ]
+  }
+}
+```
 
-Default completion notification:
+### Claude Code
+
+User settings:
 
 ```text
-Codex completed
+~/.claude/settings.json
+```
+
+Conceptually:
+
+```json
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "... agent-watch ... hook --agent claude",
+            "timeout": 10,
+            "async": true
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+The installed command uses absolute Node/script paths so hooks launched from a GUI app do not depend on the shell's `PATH` containing `agent-watch`.
+
+## Privacy model
+
+Agent Watch intentionally treats push providers as third parties.
+
+Default notification payload:
+
+```text
+Codex finished
 agent
-Task finished
+Turn finished.
 ```
 
-or:
+It does **not** read transcript files. Final assistant text is only included when `--include-summary` is explicitly enabled, and is bounded by `summaryMaxChars`.
 
-```text
-Claude Code completed
-topuplist
-Task finished
-```
+Pushover credentials are stored locally with user-only file permissions. Do not commit the config file or credentials into a repository.
 
-The default payload is intentionally minimal:
+## Semantics: “finished” means end of a turn
 
-- agent name
-- project/directory name
-- lifecycle status
-
-It does not send:
-
-- source code
-- prompts
-- transcript files
-- tool results
-- full assistant messages
-
-If summaries are enabled, only a whitespace-normalized and length-bounded final assistant message excerpt is sent.
+A `Stop` hook means the main agent finished responding for the current turn. It is not a formal proof that every real-world task objective has been completed. For example, an agent can stop because it needs additional user input. The notification therefore says `Turn finished.` rather than claiming a task was definitely successful.
 
 ## Commands
 
 ```text
-agent-watch setup <all|claude|codex>
-agent-watch configure pushover <USER_KEY> <APP_TOKEN>
-agent-watch configure summary <on|off>
+agent-watch configure pushover ...
+agent-watch setup all|claude|codex
 agent-watch test
-agent-watch hook --agent <claude|codex>
-agent-watch help
+agent-watch hook --agent claude|codex
+agent-watch config-path
+agent-watch --version
+agent-watch --help
 ```
-
-`hook` is intended for Claude Code/Codex lifecycle integration and reads the hook JSON payload from stdin.
-
-## Failure behavior
-
-Notification delivery is deliberately best-effort. A malformed event, missing configuration, network failure, or Pushover outage will not cause an agent lifecycle hook to fail the parent Claude Code/Codex task.
 
 ## Development
 
@@ -167,18 +221,23 @@ npm install
 npm test
 ```
 
-The tests build the TypeScript project first and then use Node's built-in test runner.
+The runtime has zero third-party npm dependencies; only TypeScript and Node type definitions are development dependencies.
 
-## Architecture
+## Roadmap
 
-```text
-Claude Code ── Stop ──┐
-                      ├── Agent Watch CLI ── Pushover ── iPhone ── Apple Watch
-Codex ─────── Stop ───┘
-```
-
-Agent Watch keeps the agent-specific payload parsing separate from notification delivery so additional providers and agents can be added later.
+- Permission-request notifications
+- ntfy provider
+- macOS Keychain-backed secret storage
+- notification deduplication / cooldown
+- richer status classification without sending source/transcript data
+- optional menu-bar companion app
 
 ## License
 
 MIT
+
+## References
+
+- Codex Hooks: https://developers.openai.com/codex/hooks
+- Claude Code Hooks: https://docs.anthropic.com/en/docs/claude-code/hooks
+- Pushover Message API: https://pushover.net/api
