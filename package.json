@@ -1,0 +1,40 @@
+{
+  "name": "agent-watch-cli",
+  "version": "0.1.0",
+  "description": "Send Claude Code and Codex lifecycle notifications to Apple Watch via Pushover.",
+  "type": "module",
+  "bin": {
+    "agent-watch": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test dist/__tests__/*.test.js",
+    "check": "npm run build && npm test",
+    "prepare": "npm run build"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.2"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mufeiyu-ayu/agent-watch.git"
+  },
+  "keywords": [
+    "claude-code",
+    "codex",
+    "apple-watch",
+    "pushover",
+    "notifications",
+    "hooks"
+  ]
+}
