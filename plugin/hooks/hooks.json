@@ -1,0 +1,40 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/runtime/hook.js\" --host auto --event SessionStart --agent-watch-managed",
+            "timeout": 5,
+            "statusMessage": "Tracking Agent Watch session"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/runtime/hook.js\" --host auto --event UserPromptSubmit --agent-watch-managed",
+            "timeout": 5,
+            "statusMessage": "Tracking Agent Watch turn"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/runtime/hook.js\" --host auto --event Stop --agent-watch-managed",
+            "timeout": 15,
+            "statusMessage": "Sending Agent Watch notification"
+          }
+        ]
+      }
+    ]
+  }
+}

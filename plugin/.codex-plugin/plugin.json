@@ -1,0 +1,27 @@
+{
+  "name": "agent-watch",
+  "version": "0.2.0",
+  "description": "Send Codex lifecycle completion notifications to DingTalk and control them with bundled skills.",
+  "author": {
+    "name": "ayu",
+    "url": "https://github.com/mufeiyu-ayu"
+  },
+  "homepage": "https://github.com/mufeiyu-ayu/agent-watch",
+  "repository": "https://github.com/mufeiyu-ayu/agent-watch",
+  "license": "MIT",
+  "keywords": ["dingtalk", "notifications", "hooks", "apple-watch", "codex"],
+  "skills": "./skills/",
+  "hooks": "./hooks/hooks.json",
+  "interface": {
+    "displayName": "Agent Watch",
+    "shortDescription": "DingTalk notifications for agent lifecycle events",
+    "longDescription": "Receive Claude Code and Codex completion notifications through a DingTalk custom robot, with local privacy controls and reusable conversation skills.",
+    "developerName": "ayu",
+    "category": "Productivity",
+    "defaultPrompt": [
+      "Show Agent Watch notification status.",
+      "Mute Agent Watch notifications for one hour."
+    ],
+    "brandColor": "#1677FF"
+  }
+}

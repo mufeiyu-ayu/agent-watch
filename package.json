@@ -1,39 +1,45 @@
 {
-  "name": "agent-watch-cli",
-  "version": "0.1.0",
-  "description": "Send Claude Code and Codex lifecycle notifications to Apple Watch via Pushover.",
+  "name": "agent-watch",
+  "version": "0.2.0",
+  "description": "DingTalk lifecycle notifications and conversation controls for Claude Code and Codex.",
   "type": "module",
   "bin": {
-    "agent-watch": "dist/cli.js"
+    "agent-watch": "./bin/agent-watch.js"
   },
   "files": [
-    "dist",
+    "bin/",
+    "plugin/",
+    ".claude-plugin/",
+    ".agents/",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "test": "npm run build && node --test dist/__tests__/*.test.js",
-    "check": "npm run build && npm test"
+    "test": "node --test",
+    "check": "node scripts/validate-package.js && npm test",
+    "smoke:install": "node scripts/smoke-install.js",
+    "prepack": "node scripts/validate-package.js"
   },
   "engines": {
     "node": ">=20"
-  },
-  "devDependencies": {
-    "@types/node": "^24.0.0",
-    "typescript": "^5.9.2"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mufeiyu-ayu/agent-watch.git"
   },
+  "homepage": "https://github.com/mufeiyu-ayu/agent-watch#readme",
+  "bugs": {
+    "url": "https://github.com/mufeiyu-ayu/agent-watch/issues"
+  },
   "keywords": [
     "claude-code",
     "codex",
+    "dingtalk",
     "apple-watch",
-    "pushover",
     "notifications",
-    "hooks"
+    "hooks",
+    "plugin"
   ]
 }

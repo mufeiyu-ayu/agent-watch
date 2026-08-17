@@ -1,0 +1,20 @@
+{
+  "name": "ayu-agent-tools",
+  "interface": {
+    "displayName": "ayu Agent Tools"
+  },
+  "plugins": [
+    {
+      "name": "agent-watch",
+      "source": {
+        "source": "local",
+        "path": "./plugin"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "name": "agent-watch",
+  "version": "0.2.0",
+  "description": "Send Claude Code lifecycle completion notifications to DingTalk and control them from the conversation.",
+  "author": {
+    "name": "ayu",
+    "url": "https://github.com/mufeiyu-ayu"
+  },
+  "homepage": "https://github.com/mufeiyu-ayu/agent-watch",
+  "repository": "https://github.com/mufeiyu-ayu/agent-watch",
+  "license": "MIT",
+  "keywords": ["dingtalk", "notifications", "hooks", "apple-watch", "claude-code"]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "ayu-agent-tools",
+  "owner": {
+    "name": "ayu",
+    "url": "https://github.com/mufeiyu-ayu"
+  },
+  "description": "Agent lifecycle utilities maintained by ayu.",
+  "plugins": [
+    {
+      "name": "agent-watch",
+      "source": "./plugin",
+      "description": "DingTalk notifications and conversation controls for Claude Code.",
+      "version": "0.2.0",
+      "author": {
+        "name": "ayu"
+      }
+    }
+  ]
+}
